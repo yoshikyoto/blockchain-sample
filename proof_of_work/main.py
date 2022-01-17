@@ -20,10 +20,16 @@ class Block:
         transaction: str,  # 取引データの中身
     ):
         self.__index = index
-        self.__timestamp = str(datetime.datetime.now().timestamp())
+        # self.__timestamp = str(datetime.datetime.now().timestamp())
+        self.__timestamp = "1"
         self.__previous_hash = previous_hash
         self.__transaction = transaction
         self.__current_hash = self.calculate_hash()
+        # nonce を追加
+        self.__nonce = None
+
+    def set_nonce(self, nonce: int):
+        self.__nonce = nonce
 
     def get_index(self) -> int:
         return self.__index
@@ -33,6 +39,13 @@ class Block:
 
     def get_transaction(self) -> str:
         return self.__transaction
+
+    def get_hash_with_nonce(self) -> str:
+        joined = self.__current_hash + str(self.__nonce)
+        return hashlib.sha256(joined.encode('ascii')).hexdigest()
+
+    def get_nonce(self) -> int:
+        return self.__nonce
 
     def calculate_hash(self) -> str:
         data_hash = {
@@ -47,15 +60,35 @@ class Block:
 # とりあえず配列で
 block_chain = []
 
-# 一番最初のブロック
-genesis = Block(0, "", "取引内容")
-block_chain.append(genesis)
-
 for i in range(5):
-    new_block = Block(i + 1, block_chain[i].get_hash(), "取引内容" + str(i+1))
+    if i == 0:
+        new_block = Block(i, "", "取引内容")
+    else:
+        new_block = Block(i, block_chain[i - 1].get_hash(), "取引内容" + str(i))
+
+    # マイニング処理
+    difficulty = 1  # マイニングの難易度
+    nonce = 0
+    while True:
+        joined = new_block.get_hash() + str(nonce)
+        nonce_joined_hash = hashlib.sha256(joined.encode("ascii")).hexdigest()
+        # 先頭から difficulty 桁が 0 で埋まっているか確認
+        if nonce_joined_hash[:difficulty:] == "0":
+            # マイニング終了
+            new_block.set_nonce(nonce)
+            break
+        nonce += 1
+
+    # マイニングに成功したら保存できる
     block_chain.append(new_block)
 
 # ブロックチェーンの内容を出力
 for block in block_chain:
-    print(block.get_index(), block.get_hash(), block.get_transaction())
+    print(
+        block.get_index(), 
+        block.get_transaction(), 
+        block.get_hash(), 
+        block.get_hash_with_nonce(), 
+        block.get_nonce(),
+    )
 
