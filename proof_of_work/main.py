@@ -67,13 +67,15 @@ for i in range(5):
         new_block = Block(i, block_chain[i - 1].get_hash(), "取引内容" + str(i))
 
     # マイニング処理
-    difficulty = 1  # マイニングの難易度
+    difficulty = 6  # マイニングの難易度
     nonce = 0
     while True:
+        # none を結合したハッシュを計算
         joined = new_block.get_hash() + str(nonce)
         nonce_joined_hash = hashlib.sha256(joined.encode("ascii")).hexdigest()
+
         # 先頭から difficulty 桁が 0 で埋まっているか確認
-        if nonce_joined_hash[:difficulty:] == "0":
+        if nonce_joined_hash[:difficulty:] == "000000":
             # マイニング終了
             new_block.set_nonce(nonce)
             break
